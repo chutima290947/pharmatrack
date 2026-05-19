@@ -45,7 +45,6 @@ export default function DashboardPage({ navigate }) {
   const openDetail = async (p) => {
     setSelected(p)
     const allLogs = await getLogs(p.vn)
-    // ✅ กรองเฉพาะ log ของ VN นี้ เรียงตาม bottle_number
     const filtered = allLogs
       .filter(l => l.vn === p.vn)
       .sort((a, b) => a.bottle_number - b.bottle_number)
@@ -61,7 +60,6 @@ export default function DashboardPage({ navigate }) {
     dispensedToday: logs.filter(l => l.dispensed_date === todayISO).length,
   }
 
-  // รวม active + completed
   const allRecords = [
     ...patients.map(p => ({ ...p, isActive: true })),
     ...completed.map(h => ({
@@ -79,8 +77,6 @@ export default function DashboardPage({ navigate }) {
     }))
   ]
 
-  // Group by HN (ถ้าไม่มี HN ใช้ patientName แทน)
-  // แสดง 2 VN ล่าสุดต่อ HN เรียงวันที่ล่าสุดก่อน
   const groupByHN = {}
   allRecords.forEach(p => {
     const key = p.hn || p.patientName
@@ -88,7 +84,6 @@ export default function DashboardPage({ navigate }) {
     groupByHN[key].push(p)
   })
 
-  // เรียงแต่ละ HN ตามวันที่ล่าสุด แล้วเอาแค่ 2 อัน
   const groupedRecords = Object.values(groupByHN).flatMap(group => {
     return group
       .sort((a, b) => {
@@ -99,18 +94,25 @@ export default function DashboardPage({ navigate }) {
       .slice(0, 2)
   })
 
-  const filtered = groupedRecords.filter(p => {
-    const q = search.toLowerCase()
-    const matchSearch = !q ||
-      p.vn.toLowerCase().includes(q) ||
-      p.patientName.toLowerCase().includes(q) ||
-      (p.hn || '').toLowerCase().includes(q)
-    const matchTab =
-      tab === 'all'       ? true :
-      tab === 'active'    ? p.isActive :
-      tab === 'completed' ? !p.isActive : true
-    return matchSearch && matchTab
-  })
+  const filtered = groupedRecords
+    .filter(p => {
+      const q = search.toLowerCase()
+      const matchSearch = !q ||
+        p.vn.toLowerCase().includes(q) ||
+        p.patientName.toLowerCase().includes(q) ||
+        (p.hn || '').toLowerCase().includes(q)
+      const matchTab =
+        tab === 'all'       ? true :
+        tab === 'active'    ? p.isActive :
+        tab === 'completed' ? !p.isActive : true
+      return matchSearch && matchTab
+    })
+    // ✅ เรียงใหม่ไปเก่า ใช้ activeDate หรือ dispensed_date
+    .sort((a, b) => {
+      const dateA = a.dispensed_date || a.activeDate || ''
+      const dateB = b.dispensed_date || b.activeDate || ''
+      return dateB.localeCompare(dateA)
+    })
 
   const statCards = [
     { label: 'ผู้ป่วยทั้งหมด',  value: stats.total,          icon: 'group',          color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-l-blue-500' },
@@ -120,16 +122,12 @@ export default function DashboardPage({ navigate }) {
     { label: 'จ่ายยาวันนี้',     value: stats.dispensedToday, icon: 'local_shipping', color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-l-purple-500' },
   ]
 
-  // ✅ คำนวณว่าขวดไหนรับแล้วจริงๆ
-  // dispensedCount = totalBottles - remainingBottles
-  // ขวดที่ 1..dispensedCount = รับแล้ว, ที่เหลือ = รอรับ
   const getBottleRows = (p, logs) => {
     const total = p.totalBottles || 0
     const dispensedCount = total - (p.remainingBottles ?? 0)
     return Array.from({ length: total }, (_, i) => {
       const bottleNum = i + 1
       const isReceived = bottleNum <= dispensedCount
-      // หา log ที่ตรงกับขวดนี้ (ถ้ามี)
       const log = logs.find(l => l.bottle_number === bottleNum)
       return { bottleNum, isReceived, log }
     })
@@ -207,50 +205,34 @@ export default function DashboardPage({ navigate }) {
                         ))}
                       </tr>
                     </thead>
-
-                    
                     <tbody className="divide-y divide-slate-100">
                       {loading ? (
                         <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">กำลังโหลด...</td></tr>
                       ) : filtered.length === 0 ? (
                         <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">ไม่พบข้อมูล</td></tr>
-                      ) : (() => {
-                        const groups = {}
-                        filtered.forEach(p => {
-                          const key = p.hn || p.patientName
-                          if (!groups[key]) groups[key] = []
-                          groups[key].push(p)
-                        })
-                        return Object.values(groups).flatMap(group =>
-                          group.map((p, idx) => {
-                            const st = STATUS_LABEL[p.status] || STATUS_LABEL.followup
-                            const isFirst = idx === 0
-                            const rowSpan = group.length
-                            return (
-                              <tr key={p.id} onClick={() => openDetail(p)}
-                                className={`hover:bg-blue-50/40 cursor-pointer transition-colors ${selected?.id === p.id ? 'bg-blue-50' : ''}`}>
-                                {isFirst && (
-                                  <td className="px-4 py-3 border-r border-slate-100 align-top" rowSpan={rowSpan}>
-                                    <p className="font-bold text-slate-800 text-sm truncate max-w-[140px]">{p.patientName}</p>
-                                    {p.hn && <p className="text-[10px] text-slate-400 font-bold uppercase">HN: {p.hn}</p>}
-                                  </td>
-                                )}
-                                <td className="px-4 py-3"><span className="font-mono text-xs font-bold text-blue-700">{p.vn}</span></td>
-                                <td className="px-4 py-3 text-xs text-slate-600">{p.medication || '—'}</td>
-                                <td className="px-4 py-3 text-center"><span className="px-2 py-0.5 bg-slate-100 rounded font-bold text-slate-700">{p.totalBottles}</span></td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className={`px-2 py-0.5 rounded font-bold ${p.remainingBottles > 0 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
-                                    {p.remainingBottles}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-[10px] font-bold ${st.cls}`}>{st.label}</span></td>
-                                <td className="px-4 py-3 text-xs text-slate-600">{fmt(p.followupDate)}</td>
-                                <td className="px-4 py-3"><span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span></td>
-                              </tr>
-                            )
-                          })
+                      ) : filtered.map(p => {
+                        const st = STATUS_LABEL[p.status] || STATUS_LABEL.followup
+                        return (
+                          <tr key={p.id} onClick={() => openDetail(p)}
+                            className={`hover:bg-blue-50/40 cursor-pointer transition-colors ${selected?.id === p.id ? 'bg-blue-50' : ''}`}>
+                            <td className="px-4 py-3">
+                              <p className="font-bold text-slate-800 text-sm truncate max-w-[140px]">{p.patientName}</p>
+                              {p.hn && <p className="text-[10px] text-slate-400 font-bold uppercase">HN: {p.hn}</p>}
+                            </td>
+                            <td className="px-4 py-3"><span className="font-mono text-xs font-bold text-blue-700">{p.vn}</span></td>
+                            <td className="px-4 py-3 text-xs text-slate-600">{p.medication || '—'}</td>
+                            <td className="px-4 py-3 text-center"><span className="px-2 py-0.5 bg-slate-100 rounded font-bold text-slate-700">{p.totalBottles}</span></td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`px-2 py-0.5 rounded font-bold ${p.remainingBottles > 0 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                                {p.remainingBottles}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-[10px] font-bold ${st.cls}`}>{st.label}</span></td>
+                            <td className="px-4 py-3 text-xs text-slate-600">{fmt(p.followupDate)}</td>
+                            <td className="px-4 py-3"><span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span></td>
+                          </tr>
                         )
-                      })()}
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -288,7 +270,6 @@ export default function DashboardPage({ navigate }) {
                       </div>
                     </div>
 
-                    {/* ✅ ตารางขวด: ใช้ remainingBottles เป็น source of truth */}
                     <div>
                       <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">ประวัติการรับยาแต่ละขวด</h4>
                       <div className="space-y-2">
@@ -339,17 +320,17 @@ export default function DashboardPage({ navigate }) {
                     <p className="text-sm text-slate-400 text-center py-6">ยังไม่มีประวัติ</p>
                   ) : logs.map(l => (
                     <div key={l.id} className="px-5 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{l.patient_name}</p>
-                      <p className="text-xs text-slate-400">{l.vn} · {l.medication}</p>
-                      {l.pharmacist && (
-                        <p className="text-xs text-blue-500 font-semibold">💊 {l.pharmacist}</p>
-                      )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-xs font-bold text-green-600">ขวดที่ {l.bottle_number}/{l.total_bottles}</p>
-                      <p className="text-[10px] text-slate-400">{fmt(l.dispensed_date)}</p>
-                    </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{l.patient_name}</p>
+                        <p className="text-xs text-slate-400">{l.vn} · {l.medication}</p>
+                        {l.pharmacist && (
+                          <p className="text-xs text-blue-500 font-semibold">💊 {l.pharmacist}</p>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-xs font-bold text-green-600">ขวดที่ {l.bottle_number}/{l.total_bottles}</p>
+                        <p className="text-[10px] text-slate-400">{fmt(l.dispensed_date)}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
