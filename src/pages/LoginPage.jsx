@@ -3,7 +3,18 @@ import { useState } from 'react'
 export default function LoginPage({ onLogin }) {
   const [id, setId] = useState('')
   const [pw, setPw] = useState('')
+  const [pharmacistName, setPharmacistName] = useState('')
   const [remember, setRemember] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleLogin = () => {
+    if (!pharmacistName.trim()) {
+      setError('กรุณากรอกชื่อเภสัชกรก่อน Sign In')
+      return
+    }
+    localStorage.setItem('pharmatrack_pharmacist', pharmacistName.trim())
+    onLogin()
+  }
 
   return (
     <div
@@ -27,6 +38,24 @@ export default function LoginPage({ onLogin }) {
 
         {/* Form */}
         <div className="px-8 pb-8 flex flex-col gap-5">
+
+          {/* Pharmacist Name */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              ชื่อเภสัชกร <span className="text-red-400">*</span>
+            </label>
+            <div className="relative group">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" style={{fontVariationSettings:"'FILL' 1"}}>medication</span>
+              <input
+                type="text"
+                value={pharmacistName}
+                onChange={e => { setPharmacistName(e.target.value); setError('') }}
+                placeholder="กรอกชื่อ-นามสกุลเภสัชกร"
+                className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
+              />
+            </div>
+          </div>
+
           {/* ID */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider" htmlFor="personnel-id">
@@ -66,6 +95,14 @@ export default function LoginPage({ onLogin }) {
             </div>
           </div>
 
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-sm">error</span>
+              <p className="text-xs font-semibold text-red-600">{error}</p>
+            </div>
+          )}
+
           {/* Remember */}
           <label className="flex items-center gap-2 cursor-pointer group">
             <input
@@ -79,7 +116,7 @@ export default function LoginPage({ onLogin }) {
 
           {/* Sign In */}
           <button
-            onClick={onLogin}
+            onClick={handleLogin}
             className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-5 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98]"
           >
             Sign In

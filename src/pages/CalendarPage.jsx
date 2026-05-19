@@ -317,6 +317,7 @@ export default function CalendarPage({ navigate, jumpTo }) {
                           <div key={p.id}
                             onClick={e => { e.stopPropagation(); openById(p.id) }}
                             className={`${st.bg} border-l-[3px] ${st.border} px-1.5 py-0.5 rounded-r-md mb-0.5 cursor-pointer hover:shadow-sm transition-all`}>
+                            <p className={`text-[9px] font-bold ${st.hd} truncate leading-none`}>{p.vn}</p>
                             <p className={`text-[10px] font-bold ${st.hd} truncate`}>{p.patientName}</p>
                           </div>
                         )

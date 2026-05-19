@@ -61,6 +61,7 @@ export default function DashboardPage({ navigate }) {
     dispensedToday: logs.filter(l => l.dispensed_date === todayISO).length,
   }
 
+  // รวม active + completed
   const allRecords = [
     ...patients.map(p => ({ ...p, isActive: true })),
     ...completed.map(h => ({
@@ -74,10 +75,31 @@ export default function DashboardPage({ navigate }) {
       status:           'completed',
       followupDate:     null,
       isActive:         false,
+      dispensed_date:   h.dispensed_date,
     }))
   ]
 
-  const filtered = allRecords.filter(p => {
+  // Group by HN (ถ้าไม่มี HN ใช้ patientName แทน)
+  // แสดง 2 VN ล่าสุดต่อ HN เรียงวันที่ล่าสุดก่อน
+  const groupByHN = {}
+  allRecords.forEach(p => {
+    const key = p.hn || p.patientName
+    if (!groupByHN[key]) groupByHN[key] = []
+    groupByHN[key].push(p)
+  })
+
+  // เรียงแต่ละ HN ตามวันที่ล่าสุด แล้วเอาแค่ 2 อัน
+  const groupedRecords = Object.values(groupByHN).flatMap(group => {
+    return group
+      .sort((a, b) => {
+        const dateA = a.dispensed_date || a.activeDate || ''
+        const dateB = b.dispensed_date || b.activeDate || ''
+        return dateB.localeCompare(dateA)
+      })
+      .slice(0, 2)
+  })
+
+  const filtered = groupedRecords.filter(p => {
     const q = search.toLowerCase()
     const matchSearch = !q ||
       p.vn.toLowerCase().includes(q) ||
@@ -185,34 +207,50 @@ export default function DashboardPage({ navigate }) {
                         ))}
                       </tr>
                     </thead>
+
+                    
                     <tbody className="divide-y divide-slate-100">
                       {loading ? (
                         <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">กำลังโหลด...</td></tr>
                       ) : filtered.length === 0 ? (
                         <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">ไม่พบข้อมูล</td></tr>
-                      ) : filtered.map(p => {
-                        const st = STATUS_LABEL[p.status] || STATUS_LABEL.followup
-                        return (
-                          <tr key={p.id} onClick={() => openDetail(p)}
-                            className={`hover:bg-blue-50/40 cursor-pointer transition-colors ${selected?.id === p.id ? 'bg-blue-50' : ''}`}>
-                            <td className="px-4 py-3">
-                              <p className="font-bold text-slate-800 text-sm truncate max-w-[140px]">{p.patientName}</p>
-                              {p.hn && <p className="text-[10px] text-slate-400 font-bold uppercase">HN: {p.hn}</p>}
-                            </td>
-                            <td className="px-4 py-3"><span className="font-mono text-xs font-bold text-blue-700">{p.vn}</span></td>
-                            <td className="px-4 py-3 text-xs text-slate-600">{p.medication || '—'}</td>
-                            <td className="px-4 py-3 text-center"><span className="px-2 py-0.5 bg-slate-100 rounded font-bold text-slate-700">{p.totalBottles}</span></td>
-                            <td className="px-4 py-3 text-center">
-                              <span className={`px-2 py-0.5 rounded font-bold ${p.remainingBottles > 0 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
-                                {p.remainingBottles}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-[10px] font-bold ${st.cls}`}>{st.label}</span></td>
-                            <td className="px-4 py-3 text-xs text-slate-600">{fmt(p.followupDate)}</td>
-                            <td className="px-4 py-3"><span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span></td>
-                          </tr>
+                      ) : (() => {
+                        const groups = {}
+                        filtered.forEach(p => {
+                          const key = p.hn || p.patientName
+                          if (!groups[key]) groups[key] = []
+                          groups[key].push(p)
+                        })
+                        return Object.values(groups).flatMap(group =>
+                          group.map((p, idx) => {
+                            const st = STATUS_LABEL[p.status] || STATUS_LABEL.followup
+                            const isFirst = idx === 0
+                            const rowSpan = group.length
+                            return (
+                              <tr key={p.id} onClick={() => openDetail(p)}
+                                className={`hover:bg-blue-50/40 cursor-pointer transition-colors ${selected?.id === p.id ? 'bg-blue-50' : ''}`}>
+                                {isFirst && (
+                                  <td className="px-4 py-3 border-r border-slate-100 align-top" rowSpan={rowSpan}>
+                                    <p className="font-bold text-slate-800 text-sm truncate max-w-[140px]">{p.patientName}</p>
+                                    {p.hn && <p className="text-[10px] text-slate-400 font-bold uppercase">HN: {p.hn}</p>}
+                                  </td>
+                                )}
+                                <td className="px-4 py-3"><span className="font-mono text-xs font-bold text-blue-700">{p.vn}</span></td>
+                                <td className="px-4 py-3 text-xs text-slate-600">{p.medication || '—'}</td>
+                                <td className="px-4 py-3 text-center"><span className="px-2 py-0.5 bg-slate-100 rounded font-bold text-slate-700">{p.totalBottles}</span></td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`px-2 py-0.5 rounded font-bold ${p.remainingBottles > 0 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                                    {p.remainingBottles}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-[10px] font-bold ${st.cls}`}>{st.label}</span></td>
+                                <td className="px-4 py-3 text-xs text-slate-600">{fmt(p.followupDate)}</td>
+                                <td className="px-4 py-3"><span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span></td>
+                              </tr>
+                            )
+                          })
                         )
-                      })}
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -254,13 +292,14 @@ export default function DashboardPage({ navigate }) {
                     <div>
                       <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">ประวัติการรับยาแต่ละขวด</h4>
                       <div className="space-y-2">
-                        <div className="grid grid-cols-3 gap-2 px-3 py-1.5 bg-slate-50 rounded-lg">
+                        <div className="grid grid-cols-4 gap-2 px-3 py-1.5 bg-slate-50 rounded-lg">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">ขวดที่</span>
                           <span className="text-[10px] font-bold text-slate-400 uppercase">วันที่รับ</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">เภสัช</span>
                           <span className="text-[10px] font-bold text-slate-400 uppercase">สถานะ</span>
                         </div>
                         {getBottleRows(selected, vnLogs).map(({ bottleNum, isReceived, log }) => (
-                          <div key={bottleNum} className={`grid grid-cols-3 gap-2 px-3 py-2 rounded-lg border ${isReceived ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+                          <div key={bottleNum} className={`grid grid-cols-4 gap-2 px-3 py-2 rounded-lg border ${isReceived ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
                             <div className="flex items-center gap-2">
                               <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${isReceived ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
                                 {bottleNum}
@@ -269,6 +308,9 @@ export default function DashboardPage({ navigate }) {
                             </div>
                             <span className="text-xs font-semibold text-slate-700 flex items-center">
                               {log ? fmt(log.dispensed_date) : '—'}
+                            </span>
+                            <span className="text-xs text-blue-600 font-semibold flex items-center truncate">
+                              {log?.pharmacist || '—'}
                             </span>
                             <span className={`text-[10px] font-bold flex items-center ${isReceived ? 'text-green-600' : 'text-slate-400'}`}>
                               {isReceived ? '✅ รับแล้ว' : '⏳ รอรับ'}
@@ -297,14 +339,17 @@ export default function DashboardPage({ navigate }) {
                     <p className="text-sm text-slate-400 text-center py-6">ยังไม่มีประวัติ</p>
                   ) : logs.map(l => (
                     <div key={l.id} className="px-5 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{l.patient_name}</p>
-                        <p className="text-xs text-slate-400">{l.vn} · {l.medication}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-xs font-bold text-green-600">ขวดที่ {l.bottle_number}/{l.total_bottles}</p>
-                        <p className="text-[10px] text-slate-400">{fmt(l.dispensed_date)}</p>
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{l.patient_name}</p>
+                      <p className="text-xs text-slate-400">{l.vn} · {l.medication}</p>
+                      {l.pharmacist && (
+                        <p className="text-xs text-blue-500 font-semibold">💊 {l.pharmacist}</p>
+                      )}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs font-bold text-green-600">ขวดที่ {l.bottle_number}/{l.total_bottles}</p>
+                      <p className="text-[10px] text-slate-400">{fmt(l.dispensed_date)}</p>
+                    </div>
                     </div>
                   ))}
                 </div>

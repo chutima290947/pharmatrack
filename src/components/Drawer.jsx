@@ -160,6 +160,17 @@ export default function Drawer({ open, patient, onClose, onSave }) {
               ))}
             </div>
             <DispenseWarning patient={patient} status={curStatus} />
+            {curStatus === 'dispensed' && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+              <span className="material-symbols-outlined text-blue-500 text-[18px] flex-shrink-0" style={{fontVariationSettings:"'FILL' 1"}}>medication</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">เภสัชกรผู้จ่ายยา</p>
+                <p className="text-sm font-bold text-blue-700 truncate">
+                  {localStorage.getItem('pharmatrack_pharmacist') || '—'}
+                </p>
+              </div>
+            </div>
+          )}
           </section>
 
           {/* Calendar date */}

@@ -127,6 +127,7 @@ const _saveHistory = (patient, dispensedDate, isDone = false) => {
 const _saveLog = (patient, bottleNumber, dispensedDate) => {
   const KEY_L = 'pharmatrack_logs'
   const logs = JSON.parse(localStorage.getItem(KEY_L) || '[]')
+  const pharmacist = localStorage.getItem('pharmatrack_pharmacist') || '—'
   logs.push({
     id:             Date.now(),
     vn:             patient.vn,
@@ -136,6 +137,7 @@ const _saveLog = (patient, bottleNumber, dispensedDate) => {
     total_bottles:  patient.totalBottles,
     bottle_number:  bottleNumber,
     dispensed_date: dispensedDate,
+    pharmacist:     pharmacist,
   })
   localStorage.setItem(KEY_L, JSON.stringify(logs))
 }
