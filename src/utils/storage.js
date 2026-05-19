@@ -9,15 +9,17 @@ export const saveAll = (arr) => localStorage.setItem(KEY, JSON.stringify(arr))
 export const createPatient = (patient) => {
   const all = JSON.parse(localStorage.getItem(KEY) || '[]')
   const total = patient.totalBottles || patient.total_bottles || 1
+  const now = Date.now()
   const record = {
-    id:               Date.now(),
+    id:               now,
+    updatedAt:        now,   // ✅ ใช้ field นี้เรียงใหม่ไปเก่า
     vn:               patient.vn,
     hn:               patient.hn || '',
     patientName:      patient.patientName || patient.patient_name || '',
     phone:            patient.phone || '',
     medication:       patient.medication || '',
     totalBottles:     total,
-    remainingBottles: total,  // เริ่มเต็ม ยังไม่จ่ายอะไร
+    remainingBottles: total,
     status:           patient.status || 'followup',
     activeDate:       patient.activeDate || patient.active_date || '',
     startDate:        patient.startDate || patient.start_date || '',
@@ -36,6 +38,7 @@ export const updatePatient = (id, data) => {
   if (idx === -1) return Promise.resolve({ success: false })
   all[idx] = {
     ...all[idx],
+    updatedAt:        Date.now(),            // ✅ อัปเดตเวลาล่าสุดทุกครั้งที่ save
     phone:            data.phone            ?? all[idx].phone,
     status:           data.status           ?? all[idx].status,
     activeDate:       data.activeDate       ?? all[idx].activeDate,
@@ -60,17 +63,11 @@ export const dispensePatient = (id, dispensedDate, phone) => {
   if (idx === -1) return Promise.resolve({ success: false })
 
   const p = all[idx]
-
-  // ขวดที่กำลังจ่าย:
-  // remaining=3(total=3) → จ่ายขวดที่ 1
-  // remaining=2(total=3) → จ่ายขวดที่ 2
-  // remaining=1(total=3) → จ่ายขวดที่ 3
   const bottleNumber = (p.totalBottles || 1) - (p.remainingBottles ?? 0) + 1
   const rem = Math.max(0, (p.remainingBottles ?? 0) - 1)
   const isDone = rem <= 0
 
   _saveLog(p, bottleNumber, dispensedDate)
-  // ✅ บันทึก history พร้อม flag done เพื่อให้ Dashboard กรองได้ถูกต้อง
   _saveHistory(p, dispensedDate, isDone)
 
   const base = p.activeDate || dispensedDate
@@ -85,8 +82,10 @@ export const dispensePatient = (id, dispensedDate, phone) => {
     return Promise.resolve({ success: true, done: true, remaining: 0, nextFollowup: null })
   }
 
+  const now = Date.now()
   all.push({
-    id:               Date.now(),
+    id:               now,
+    updatedAt:        now,   // ✅ record ใหม่หลัง dispense ก็มี updatedAt ล่าสุด
     vn:               p.vn,
     hn:               p.hn || '',
     patientName:      p.patientName,
@@ -105,7 +104,6 @@ export const dispensePatient = (id, dispensedDate, phone) => {
   return Promise.resolve({ success: true, done: false, remaining: rem, nextFollowup: nextFU })
 }
 
-// ✅ เพิ่ม param isDone เพื่อแยกได้ว่ารับยาครบหรือแค่รอบนึง
 const _saveHistory = (patient, dispensedDate, isDone = false) => {
   const KEY_H = 'pharmatrack_history'
   const hist = JSON.parse(localStorage.getItem(KEY_H) || '[]')
@@ -119,7 +117,7 @@ const _saveHistory = (patient, dispensedDate, isDone = false) => {
     total_bottles:  patient.totalBottles,
     cycle_count:    patient.cycleCount,
     dispensed_date: dispensedDate,
-    is_done:        isDone,  // ✅ true เฉพาะตอนรับยาครบทุกขวด
+    is_done:        isDone,
   })
   localStorage.setItem(KEY_H, JSON.stringify(hist))
 }

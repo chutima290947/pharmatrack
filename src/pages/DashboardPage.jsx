@@ -107,12 +107,8 @@ export default function DashboardPage({ navigate }) {
         tab === 'completed' ? !p.isActive : true
       return matchSearch && matchTab
     })
-    // ✅ เรียงใหม่ไปเก่า ใช้ activeDate หรือ dispensed_date
-    .sort((a, b) => {
-      const dateA = a.dispensed_date || a.activeDate || ''
-      const dateB = b.dispensed_date || b.activeDate || ''
-      return dateB.localeCompare(dateA)
-    })
+    // ✅ เรียงใหม่ไปเก่า ใช้ id (Date.now()) — id มากกว่า = สร้างหลังกว่า
+    .sort((a, b) => (b.updatedAt || b.id || 0) - (a.updatedAt || a.id || 0))
 
   const statCards = [
     { label: 'ผู้ป่วยทั้งหมด',  value: stats.total,          icon: 'group',          color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-l-blue-500' },
