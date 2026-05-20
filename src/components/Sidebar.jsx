@@ -1,6 +1,13 @@
 export default function Sidebar({ navigate, activePage }) {
+  const handleLogout = () => {
+    if (confirm('ต้องการออกจากระบบ?')) {
+      navigate('login')
+    }
+  }
+
   return (
     <nav className="fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col p-4 z-50">
+      {/* Logo */}
       <div className="mb-8 px-4 flex flex-col items-center text-center">
         <div className="w-full h-28 flex items-center justify-center mb-5">
           <img
@@ -11,6 +18,7 @@ export default function Sidebar({ navigate, activePage }) {
         </div>
       </div>
 
+      {/* Nav links */}
       <div className="flex flex-col gap-1">
         <button
           onClick={() => navigate('calendar')}
@@ -20,7 +28,7 @@ export default function Sidebar({ navigate, activePage }) {
         >
           <span className="material-symbols-outlined">calendar_month</span>Dispensing Calendar
         </button>
-        
+
         <button
           onClick={() => navigate('add-patient')}
           className={`flex items-center gap-3 px-4 py-3 rounded-md font-medium text-sm w-full text-left transition-colors ${
@@ -29,6 +37,7 @@ export default function Sidebar({ navigate, activePage }) {
         >
           <span className="material-symbols-outlined">add_circle</span>Add VN
         </button>
+
         <button
           onClick={() => navigate('dashboard')}
           className={`flex items-center gap-3 px-4 py-3 rounded-md font-medium text-sm w-full text-left transition-colors ${
@@ -39,6 +48,7 @@ export default function Sidebar({ navigate, activePage }) {
         </button>
       </div>
 
+      {/* Status Legend */}
       <div className="mt-auto p-4 bg-white border border-slate-200 rounded-xl">
         <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Status Legend</h3>
         <ul className="flex flex-col gap-3">
@@ -47,6 +57,17 @@ export default function Sidebar({ navigate, activePage }) {
           <li className="flex items-center gap-3"><span className="w-3 h-3 rounded-full bg-blue-500" /><span className="text-xs font-semibold text-slate-700">Checked / Ready</span></li>
           <li className="flex items-center gap-3"><span className="w-3 h-3 rounded-full bg-green-500" /><span className="text-xs font-semibold text-slate-700">Dispensed</span></li>
         </ul>
+      </div>
+
+      {/* Logout */}
+      <div className="mt-3 p-4 bg-white border border-slate-200 rounded-xl">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full text-left text-red-500 hover:text-red-600 transition-colors"
+        >
+          <span className="material-symbols-outlined text-red-400">logout</span>
+          <span className="text-sm font-semibold">Log out</span>
+        </button>
       </div>
     </nav>
   )

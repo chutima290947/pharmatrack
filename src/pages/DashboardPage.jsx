@@ -160,7 +160,7 @@ export default function DashboardPage({ navigate }) {
             </div>
             <button onClick={load}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-              <span className="material-symbols-outlined text-sm">refresh</span>รีเฟรช
+              <span className="material-symbols-outlined text-sm">refresh</span>Refresh
             </button>
           </div>
 
@@ -188,7 +188,6 @@ export default function DashboardPage({ navigate }) {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">บันทึกติดตามการรับยา</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">แสดง 2 VN ล่าสุดต่อ HN</p>
                     </div>
                     <span className="text-xs text-slate-400">{totalFiltered} รายการ</span>
                   </div>
