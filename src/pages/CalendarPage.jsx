@@ -119,6 +119,22 @@ export default function CalendarPage({ navigate, jumpTo }) {
     byDate[d].push(p)
   })
 
+  // ── Mini stats สำหรับเดือนที่แสดงอยู่ ──
+  const monthPrefix = `${yr}-${String(mo + 1).padStart(2, '0')}`
+  const monthPatients = patients.filter(p => p.activeDate?.startsWith(monthPrefix))
+  const todayPatients = patients.filter(p => p.activeDate === todayISO)
+  const overduePatients = patients.filter(p => p.activeDate < todayISO && p.status === 'followup')
+  const todayLogs = JSON.parse(localStorage.getItem('pharmatrack_logs') || '[]')
+    .filter(l => l.dispensed_date === todayISO)
+  const dispensedTodayCount = [...new Map(todayLogs.map(l => [l.vn, l])).values()].length
+
+  const miniStats = [
+    { label: 'นัดเดือนนี้',   value: monthPatients.length,   icon: 'calendar_month',  bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-700',   dot: 'bg-blue-500' },
+    { label: 'นัดวันนี้',      value: todayPatients.length,   icon: 'today',           bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', dot: 'bg-purple-500' },
+    { label: 'จ่ายยาวันนี้',  value: dispensedTodayCount,    icon: 'medication',      bg: 'bg-green-50',  border: 'border-green-200',  text: 'text-green-700',  dot: 'bg-green-500' },
+    { label: 'เกินนัด',        value: overduePatients.length, icon: 'warning',         bg: 'bg-red-50',    border: 'border-red-200',    text: 'text-red-700',    dot: 'bg-red-500' },
+  ]
+
   const firstDow  = new Date(yr, mo, 1).getDay()
   const daysInMon = new Date(yr, mo + 1, 0).getDate()
   const rows      = Math.ceil((firstDow + daysInMon) / 7)
@@ -148,8 +164,7 @@ export default function CalendarPage({ navigate, jumpTo }) {
         <div className="max-w-[1600px] mx-auto px-6 py-5">
 
           {/* ── Header ── */}
-          <div className="flex items-center justify-between mb-5">
-            {/* Left: title + month/year */}
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-slate-800 leading-tight">Dispensing Calendar</h2>
@@ -157,15 +172,12 @@ export default function CalendarPage({ navigate, jumpTo }) {
               </div>
             </div>
 
-            {/* Right: nav controls */}
             <div className="flex items-center gap-2">
-              {/* Today button */}
               <button onClick={goToday}
                 className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
                 Today
               </button>
 
-              {/* Prev / Next */}
               <div className="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                 <button onClick={() => changeMonth(-1)}
                   className="px-3 py-2 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all border-r border-slate-200">
@@ -179,7 +191,6 @@ export default function CalendarPage({ navigate, jumpTo }) {
 
               <div className="w-px h-5 bg-slate-200" />
 
-              {/* Filter / Today Summary */}
               <div className="relative">
                 <button
                   onClick={() => setShowFilter(v => !v)}
@@ -202,8 +213,6 @@ export default function CalendarPage({ navigate, jumpTo }) {
                         </button>
                       </div>
                       {(() => {
-                        const todayLogs = JSON.parse(localStorage.getItem('pharmatrack_logs') || '[]')
-                          .filter(l => l.dispensed_date === todayISO)
                         const uniqueVNs = [...new Map(todayLogs.map(l => [l.vn, l])).values()]
                         return (
                           <div className="p-4">
@@ -245,29 +254,34 @@ export default function CalendarPage({ navigate, jumpTo }) {
             </div>
           </div>
 
+          {/* ── Mini Stats Bar ── */}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            {miniStats.map(s => (
+              <div key={s.label} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${s.bg} ${s.border} shadow-sm`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${s.bg} border ${s.border}`}>
+                  <span className={`material-symbols-outlined text-lg ${s.text}`}>{s.icon}</span>
+                </div>
+                <div>
+                  <p className={`text-2xl font-black leading-none ${s.text}`}>{s.value}</p>
+                  <p className={`text-[11px] font-semibold mt-0.5 ${s.text} opacity-70`}>{s.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/* ── Calendar grid ── */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
-            {/* Day-of-week header */}
             <div className="grid grid-cols-7">
               {DAYS.map((d, i) => (
-            <div
-              key={d}
-              className={`py-3 text-center text-[11px] font-bold uppercase tracking-widest border-b border-slate-100
-                ${
-                  i === 0
-                    ? 'text-red-400 bg-red-50/60'
-                    : i === 6
-                    ? 'text-blue-400 bg-blue-50/60'
-                    : 'text-slate-400 bg-white'
-                }`}
-            >
-              {d}
-            </div>
-          ))}
+                <div key={d}
+                  className={`py-3 text-center text-[11px] font-bold uppercase tracking-widest border-b border-slate-100
+                    ${i === 0 ? 'text-red-400 bg-red-50/60' : i === 6 ? 'text-blue-400 bg-blue-50/60' : 'text-slate-400 bg-white'}`}>
+                  {d}
+                </div>
+              ))}
             </div>
 
-            {/* Cells */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gridAutoRows:'minmax(110px,auto)' }}>
               {cells.map(({ day, valid, iso, col }, i) => {
                 const row     = Math.floor(i / 7)
@@ -282,17 +296,18 @@ export default function CalendarPage({ navigate, jumpTo }) {
                   )
                 }
 
-                const isToday = iso === todayISO
-                const evts    = byDate[iso] || []
-                const hasEvts = evts.length > 0
+                const isToday  = iso === todayISO
+                const isOverdue = iso < todayISO
+                const evts     = byDate[iso] || []
+                const hasEvts  = evts.length > 0
+                const hasOverdue = evts.some(p => p.status === 'followup' && isOverdue)
 
                 return (
                   <div key={i} onClick={() => openByDate(iso)}
                     className={`${borderR} ${borderB} border-slate-100 p-2 cursor-pointer transition-colors group
                       ${isWeekend(col) ? 'bg-blue-50/20 hover:bg-blue-50/50' : 'bg-white hover:bg-slate-50/80'}`}>
 
-                    {/* Date number */}
-                    <div className="mb-1.5">
+                    <div className="mb-1.5 flex items-center justify-between">
                       {isToday ? (
                         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold shadow-sm">
                           {day}
@@ -307,28 +322,32 @@ export default function CalendarPage({ navigate, jumpTo }) {
                           {day}
                         </span>
                       )}
+                      {/* overdue badge */}
+                      {hasOverdue && (
+                        <span className="text-[9px] font-bold text-red-500 bg-red-50 border border-red-200 rounded px-1 leading-4">เกินนัด</span>
+                      )}
                     </div>
 
-                    {/* Events */}
                     {evts.map(p => {
                       const st = ST[p.status] || ST.followup
+                      const isEvtOverdue = p.status === 'followup' && iso < todayISO
                       if (evts.length >= 3) {
                         return (
                           <div key={p.id}
                             onClick={e => { e.stopPropagation(); openById(p.id) }}
-                            className={`${st.bg} border-l-[3px] ${st.border} px-1.5 py-0.5 rounded-r-md mb-0.5 cursor-pointer hover:shadow-sm transition-all`}>
-                            <p className={`text-[9px] font-bold ${st.hd} truncate leading-none`}>{p.vn}</p>
-                            <p className={`text-[10px] font-bold ${st.hd} truncate`}>{p.patientName}</p>
+                            className={`${isEvtOverdue ? 'bg-red-100 border-red-500' : st.bg} border-l-[3px] ${isEvtOverdue ? 'border-red-500' : st.border} px-1.5 py-0.5 rounded-r-md mb-0.5 cursor-pointer hover:shadow-sm transition-all`}>
+                            <p className={`text-[9px] font-bold ${isEvtOverdue ? 'text-red-700' : st.hd} truncate leading-none`}>{p.vn}</p>
+                            <p className={`text-[10px] font-bold ${isEvtOverdue ? 'text-red-700' : st.hd} truncate`}>{p.patientName}</p>
                           </div>
                         )
                       }
                       return (
                         <div key={p.id}
                           onClick={e => { e.stopPropagation(); openById(p.id) }}
-                          className={`${st.bg} border-l-[3px] ${st.border} px-1.5 py-1 rounded-r-md mb-1 cursor-pointer hover:-translate-y-px hover:shadow-md transition-all`}>
-                          <p className={`text-[10px] font-bold ${st.hd}`}>{p.vn}</p>
+                          className={`${isEvtOverdue ? 'bg-red-100' : st.bg} border-l-[3px] ${isEvtOverdue ? 'border-red-500' : st.border} px-1.5 py-1 rounded-r-md mb-1 cursor-pointer hover:-translate-y-px hover:shadow-md transition-all`}>
+                          <p className={`text-[10px] font-bold ${isEvtOverdue ? 'text-red-700' : st.hd}`}>{p.vn}</p>
                           <p className="text-[11px] font-semibold text-slate-800 truncate">{p.patientName}</p>
-                          <p className={`text-[10px] ${st.txt}`}>{p.medication || 'N/A'} · {st.label}</p>
+                          <p className={`text-[10px] ${isEvtOverdue ? 'text-red-600' : st.txt}`}>{p.medication || 'N/A'} · {isEvtOverdue ? '⚠️ เกินนัด' : st.label}</p>
                           <div className="mt-0.5 flex items-center gap-1 text-[9px] text-slate-400 font-semibold">
                             <span className="material-symbols-outlined text-[10px]">inventory_2</span>
                             {p.remainingBottles ?? 0} bottle{(p.remainingBottles ?? 0) !== 1 ? 's' : ''}
