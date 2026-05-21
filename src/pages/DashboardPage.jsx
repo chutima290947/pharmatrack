@@ -24,8 +24,8 @@ export default function DashboardPage({ navigate }) {
   const [vnLogs,    setVnLogs]    = useState([])
   const [toast,     setToast]     = useState(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setLoading(true)
     const pts  = await getAll()
     const hist = await getLogs('')
     setPatients(pts)
@@ -41,7 +41,14 @@ export default function DashboardPage({ navigate }) {
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  // Initial load
+  useEffect(() => { load(true) }, [load])
+
+  // Auto-refresh ทุก 3 วินาที ไม่ show spinner
+  useEffect(() => {
+    const id = setInterval(() => load(false), 3000)
+    return () => clearInterval(id)
+  }, [load])
 
   const openDetail = async (p) => {
     setSelected(p)
@@ -87,7 +94,6 @@ export default function DashboardPage({ navigate }) {
   })
   const uniqueRecords = Object.values(dedupedByVN)
 
-  // ── group by HN → เรียงใหม่ไปเก่า เอาแค่ 2 VN ล่าสุด ──
   const groupByHN = {}
   uniqueRecords.forEach(p => {
     const key = p.hn?.trim() || p.patientName?.trim() || p.vn
@@ -95,7 +101,6 @@ export default function DashboardPage({ navigate }) {
     groupByHN[key].push(p)
   })
 
-  // แต่ละ group เรียง updatedAt ล่าสุดก่อน แล้วเอาแค่ 2
   const groupedByHN = {}
   Object.entries(groupByHN).forEach(([key, group]) => {
     groupedByHN[key] = group
@@ -103,7 +108,6 @@ export default function DashboardPage({ navigate }) {
       .slice(0, 2)
   })
 
-  // ── filter ตาม tab + search ──
   const filterGroup = (group) => group.filter(p => {
     const q = search.toLowerCase()
     const matchSearch = !q ||
@@ -117,7 +121,6 @@ export default function DashboardPage({ navigate }) {
     return matchSearch && matchTab
   })
 
-  // ── สร้าง groups สำหรับ render (เรียง group ตาม updatedAt ของ record แรกในกลุ่ม) ──
   const filteredGroups = Object.values(groupedByHN)
     .map(group => filterGroup(group))
     .filter(group => group.length > 0)
@@ -158,7 +161,7 @@ export default function DashboardPage({ navigate }) {
               <h2 className="text-2xl font-bold text-slate-900">Dashboard</h2>
               <p className="text-sm text-slate-500 mt-0.5">ภาพรวมการบันทึกติดตามการรับยา</p>
             </div>
-            <button onClick={load}
+            <button onClick={() => load(true)}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
               <span className="material-symbols-outlined text-sm">refresh</span>Refresh
             </button>
@@ -233,7 +236,6 @@ export default function DashboardPage({ navigate }) {
                               onClick={() => openDetail(p)}
                               className={`hover:bg-blue-50/40 cursor-pointer transition-colors ${selected?.id === p.id ? 'bg-blue-50' : ''} ${!isFirst ? 'border-t border-dashed border-slate-100' : ''}`}>
 
-                              {/* ✅ ชื่อ+HN แสดงแค่แถวแรก ใช้ rowSpan ครอบ */}
                               {isFirst && (
                                 <td className="px-4 py-3 align-middle border-r border-slate-100" rowSpan={rowSpan}>
                                   <p className="font-bold text-slate-800 text-sm truncate max-w-[140px]">{p.patientName}</p>

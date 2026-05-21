@@ -12,7 +12,7 @@ export const createPatient = (patient) => {
   const now = Date.now()
   const record = {
     id:               now,
-    updatedAt:        now,   // ✅ ใช้ field นี้เรียงใหม่ไปเก่า
+    updatedAt:        now,
     vn:               patient.vn,
     hn:               patient.hn || '',
     patientName:      patient.patientName || patient.patient_name || '',
@@ -38,7 +38,7 @@ export const updatePatient = (id, data) => {
   if (idx === -1) return Promise.resolve({ success: false })
   all[idx] = {
     ...all[idx],
-    updatedAt:        Date.now(),            // ✅ อัปเดตเวลาล่าสุดทุกครั้งที่ save
+    updatedAt:        Date.now(),
     phone:            data.phone            ?? all[idx].phone,
     status:           data.status           ?? all[idx].status,
     activeDate:       data.activeDate       ?? all[idx].activeDate,
@@ -85,7 +85,7 @@ export const dispensePatient = (id, dispensedDate, phone) => {
   const now = Date.now()
   all.push({
     id:               now,
-    updatedAt:        now,   // ✅ record ใหม่หลัง dispense ก็มี updatedAt ล่าสุด
+    updatedAt:        now,
     vn:               p.vn,
     hn:               p.hn || '',
     patientName:      p.patientName,
@@ -141,24 +141,29 @@ const _saveLog = (patient, bottleNumber, dispensedDate) => {
 }
 
 export const saveHistory = () => Promise.resolve({ success: true })
-export const saveLog = () => Promise.resolve({ success: true })
+export const saveLog     = () => Promise.resolve({ success: true })
 
 export const getHistory = (year, month) => {
   let hist = JSON.parse(localStorage.getItem('pharmatrack_history') || '[]')
   if (year)  hist = hist.filter(h => h.dispensed_date?.startsWith(String(year)))
-  if (month) hist = hist.filter(h => parseInt(h.dispensed_date?.slice(5,7)) === month)
-  return Promise.resolve(hist.reverse())
+  if (month) hist = hist.filter(h => parseInt(h.dispensed_date?.slice(5, 7)) === month)
+  // ✅ เรียงใหม่→เก่าเสมอ
+  return Promise.resolve([...hist].reverse())
 }
 
 export const getLogs = (q) => {
   const logs = JSON.parse(localStorage.getItem('pharmatrack_logs') || '[]')
-  if (!q) return Promise.resolve(logs)
+  // ✅ เรียงใหม่→เก่าเสมอ (id = Date.now() มากกว่า = ใหม่กว่า)
+  const sorted = [...logs].sort((a, b) => b.id - a.id)
+  if (!q) return Promise.resolve(sorted)
   const ql = q.toLowerCase()
-  return Promise.resolve(logs.filter(l =>
-    l.patient_name?.toLowerCase().includes(ql) ||
-    l.vn?.toLowerCase().includes(ql) ||
-    l.hn?.toLowerCase().includes(ql)
-  ))
+  return Promise.resolve(
+    sorted.filter(l =>
+      l.patient_name?.toLowerCase().includes(ql) ||
+      l.vn?.toLowerCase().includes(ql) ||
+      l.hn?.toLowerCase().includes(ql)
+    )
+  )
 }
 
 export const toISO = (d) =>
