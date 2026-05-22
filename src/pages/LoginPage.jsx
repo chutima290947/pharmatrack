@@ -6,12 +6,12 @@ export default function LoginPage({ onLogin }) {
   const [pharmacistName, setPharmacistName] = useState('')
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+
+  const isFormComplete = pharmacistName.trim() !== '' && id.trim() !== '' && pw.trim() !== ''
 
   const handleLogin = () => {
-    if (!pharmacistName.trim()) {
-      setError('กรุณากรอกชื่อเภสัชกรก่อน Sign In')
-      return
-    }
+    if (!isFormComplete) return
     localStorage.setItem('pharmatrack_pharmacist', pharmacistName.trim())
     onLogin()
   }
@@ -42,7 +42,7 @@ export default function LoginPage({ onLogin }) {
           {/* Pharmacist Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              ชื่อเภสัชกร <span className="text-red-400">*</span>
+              Pharmacist name <span className="text-red-400">*</span>
             </label>
             <div className="relative group">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" style={{fontVariationSettings:"'FILL' 1"}}>medication</span>
@@ -50,7 +50,7 @@ export default function LoginPage({ onLogin }) {
                 type="text"
                 value={pharmacistName}
                 onChange={e => { setPharmacistName(e.target.value); setError('') }}
-                placeholder="กรอกชื่อ-นามสกุลเภสัชกร"
+                placeholder="First and last name"
                 className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
               />
             </div>
@@ -59,7 +59,7 @@ export default function LoginPage({ onLogin }) {
           {/* ID */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider" htmlFor="personnel-id">
-              Pharmacy Personnel ID or Email
+              Pharmacist ID
             </label>
             <div className="relative group">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">person</span>
@@ -68,7 +68,7 @@ export default function LoginPage({ onLogin }) {
                 type="text"
                 value={id}
                 onChange={e => setId(e.target.value)}
-                placeholder="Enter clinical ID"
+                placeholder="Enter ID"
                 className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
               />
             </div>
@@ -86,12 +86,23 @@ export default function LoginPage({ onLogin }) {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">lock</span>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={pw}
                 onChange={e => setPw(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
+                className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"
+                tabIndex={-1}
+                aria-label={showPassword ? 'ซ่อน password' : 'แสดง password'}
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
           </div>
 
@@ -117,11 +128,23 @@ export default function LoginPage({ onLogin }) {
           {/* Sign In */}
           <button
             onClick={handleLogin}
-            className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-5 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98]"
+            disabled={!isFormComplete}
+            className={`w-full font-semibold py-3 px-5 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm
+              ${isFormComplete
+                ? 'bg-blue-700 hover:bg-blue-800 text-white active:scale-[0.98] cursor-pointer'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
           >
             Sign In
             <span className="material-symbols-outlined">arrow_forward</span>
           </button>
+
+          {/* Helper text when disabled */}
+          {!isFormComplete && (
+            <p className="text-center text-[11px] text-slate-400">
+              Please fill in all required fields before logging in.
+            </p>
+          )}
         </div>
       </div>
     </div>

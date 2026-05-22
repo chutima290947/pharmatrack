@@ -156,12 +156,12 @@ export default function AddPatientPage({ navigate }) {
                       type="text"
                       value={name}
                       onChange={handleName}
-                      placeholder="ชื่อ นามสกุล"
+                      placeholder="Enter patient's legal name"
                       className={`w-full border rounded-lg text-sm py-2.5 px-3 focus:ring-2 outline-none ${nameErr ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-300'}`}
                     />
                     {nameErr
                       ? <p className="text-[11px] text-red-500 flex items-center gap-1"><span className="material-symbols-outlined text-sm">error</span>{nameErr}</p>
-                      : <p className="text-[11px] text-slate-400">ตัวอักษรไทยหรืออังกฤษ ชื่อ-นามสกุลเท่านั้น</p>
+                      : <p className="text-[11px] text-slate-400"></p>
                     }
                   </div>
 
@@ -181,12 +181,11 @@ export default function AddPatientPage({ navigate }) {
                       />
                       {/* counter */}
                       <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold ${phone.length === 10 ? 'text-green-500' : 'text-slate-400'}`}>
-                        {phone.length}/10
                       </span>
                     </div>
                     {phoneErr
                       ? <p className="text-[11px] text-red-500 flex items-center gap-1"><span className="material-symbols-outlined text-sm">error</span>{phoneErr}</p>
-                      : <p className="text-[11px] text-slate-400">ตัวเลขเท่านั้น 10 หลัก (ไม่ต้องใส่ขีด)</p>
+                      : <p className="text-[11px] text-slate-400"></p>
                     }
                   </div>
 
