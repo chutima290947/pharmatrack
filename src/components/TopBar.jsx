@@ -107,7 +107,7 @@ export default function TopBar({
           </div>
           <div className="flex flex-col leading-tight">
             <p className="text-sm font-bold text-slate-800 max-w-[140px] truncate">{pharmacistName}</p>
-            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">เภสัชกร</p>
+            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">pharmacist</p>
           </div>
         </div>
       </div>

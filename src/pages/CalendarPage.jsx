@@ -204,7 +204,7 @@ export default function CalendarPage({ navigate, jumpTo }) {
                   onClick={() => setShowFilter(v => !v)}
                   className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all shadow-sm">
                   <span className="material-symbols-outlined text-[16px]">tune</span>
-                  วันนี้
+                  Summary
                 </button>
 
                 {showFilter && (
