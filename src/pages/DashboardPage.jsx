@@ -8,9 +8,7 @@ const STATUS_LABEL = {
   followup:   { label: '🔴', cls: 'bg-red-50 text-red-700 border border-red-200' },
   production: { label: '🟡', cls: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
   ready:      { label: '🔵', cls: 'bg-blue-50 text-blue-700 border border-blue-200' },
-  dispensed:  { label: '🟢', cls: 'bg-green-50 text-green-700 border border-green-200' },
-  completed:  { label: '✅', cls: 'bg-slate-100 text-slate-500 border border-slate-200' },
-  start:      { label: '🟣', cls: 'bg-purple-50 text-purple-700 border border-purple-200' },
+  completed:  { label: '🟢', cls: 'bg-slate-100 text-slate-500 border border-slate-200' },
 }
 
 export default function DashboardPage({ navigate }) {
