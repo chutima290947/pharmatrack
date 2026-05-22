@@ -32,6 +32,10 @@ export default function AddPatientPage({ navigate }) {
   const [fuISO, setFuISO] = useState('')
   const [saving, setSaving] = useState(false)
 
+  // errors
+  const [phoneErr, setPhoneErr] = useState('')
+  const [nameErr, setNameErr] = useState('')
+
   useEffect(() => {
     if (startDate) {
       const d = new Date(startDate + 'T12:00:00')
@@ -42,14 +46,48 @@ export default function AddPatientPage({ navigate }) {
     }
   }, [startDate])
 
+  // Phone: ตัวเลขเท่านั้น ไม่เกิน 10 หลัก
+  const handlePhone = (e) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 10)
+    setPhone(raw)
+    if (raw.length > 0 && raw.length < 10) {
+      setPhoneErr('ต้องกรอกตัวเลข 10 หลัก')
+    } else {
+      setPhoneErr('')
+    }
+  }
+
+  // Name: ตัวอักษรไทย อังกฤษ และช่องว่างเท่านั้น
+  const handleName = (e) => {
+    const raw = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, '')
+    setName(raw)
+    if (raw.trim().length > 0 && raw.trim().split(/\s+/).length < 2) {
+      setNameErr('กรุณากรอกชื่อและนามสกุล')
+    } else {
+      setNameErr('')
+    }
+  }
+
   const remaining = Math.max(0, bottles - 1)
   const todayLabel = new Date(today + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 
   const savePatient = async () => {
+    // validate ก่อน save
+    let hasError = false
     if (!vn.trim() || !name.trim() || !phone.trim() || !startDate) {
       alert('กรุณากรอกข้อมูลให้ครบ:\n• Visit Number (VN)\n• ชื่อผู้ป่วย\n• เบอร์โทรศัพท์\n• Start Date')
       return
     }
+    if (phone.length !== 10) {
+      setPhoneErr('ต้องกรอกตัวเลข 10 หลัก')
+      hasError = true
+    }
+    if (name.trim().split(/\s+/).length < 2) {
+      setNameErr('กรุณากรอกชื่อและนามสกุล')
+      hasError = true
+    }
+    if (hasError) return
+
     setSaving(true)
     try {
       await createPatient({
@@ -110,19 +148,48 @@ export default function AddPatientPage({ navigate }) {
                     <input type="text" value={hn} onChange={e => setHn(e.target.value)} placeholder="e.g. HN-12345"
                       className="w-full border border-slate-200 rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-300 outline-none" />
                   </div>
+
+                  {/* Patient Name */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Patient Full Name <span className="text-red-400">*</span></label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Enter patient's legal name"
-                      className="w-full border border-slate-200 rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-300 outline-none" />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={handleName}
+                      placeholder="ชื่อ นามสกุล"
+                      className={`w-full border rounded-lg text-sm py-2.5 px-3 focus:ring-2 outline-none ${nameErr ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-300'}`}
+                    />
+                    {nameErr
+                      ? <p className="text-[11px] text-red-500 flex items-center gap-1"><span className="material-symbols-outlined text-sm">error</span>{nameErr}</p>
+                      : <p className="text-[11px] text-slate-400">ตัวอักษรไทยหรืออังกฤษ ชื่อ-นามสกุลเท่านั้น</p>
+                    }
                   </div>
+
+                  {/* Phone */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Phone Number <span className="text-red-400">*</span></label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">call</span>
-                      <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+66 81-000-0000"
-                        className="w-full pl-10 border border-slate-200 rounded-lg text-sm py-2.5 pr-3 focus:ring-2 focus:ring-blue-300 outline-none" />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={phone}
+                        onChange={handlePhone}
+                        placeholder="0812345678"
+                        maxLength={10}
+                        className={`w-full pl-10 border rounded-lg text-sm py-2.5 pr-3 focus:ring-2 outline-none ${phoneErr ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-300'}`}
+                      />
+                      {/* counter */}
+                      <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold ${phone.length === 10 ? 'text-green-500' : 'text-slate-400'}`}>
+                        {phone.length}/10
+                      </span>
                     </div>
+                    {phoneErr
+                      ? <p className="text-[11px] text-red-500 flex items-center gap-1"><span className="material-symbols-outlined text-sm">error</span>{phoneErr}</p>
+                      : <p className="text-[11px] text-slate-400">ตัวเลขเท่านั้น 10 หลัก (ไม่ต้องใส่ขีด)</p>
+                    }
                   </div>
+
                   <div className="space-y-1.5 col-span-2">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Start Date <span className="text-red-400">*</span></label>
                     <div className="relative w-1/2">
@@ -159,8 +226,14 @@ export default function AddPatientPage({ navigate }) {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Bottles Prescribed</label>
-                    <input type="number" min="1" value={bottles} onChange={e => setBottles(parseInt(e.target.value) || 1)}
-                      className="w-full border border-slate-200 rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-300 outline-none" />
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={bottles}
+                      onChange={e => setBottles(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full border border-slate-200 rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-300 outline-none"
+                    />
                   </div>
                 </div>
               </div>
