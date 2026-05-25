@@ -39,23 +39,6 @@ export default function LoginPage({ onLogin }) {
         {/* Form */}
         <div className="px-8 pb-8 flex flex-col gap-5">
 
-          {/* Pharmacist Name */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Pharmacist name <span className="text-red-400">*</span>
-            </label>
-            <div className="relative group">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" style={{fontVariationSettings:"'FILL' 1"}}>medication</span>
-              <input
-                type="text"
-                value={pharmacistName}
-                onChange={e => { setPharmacistName(e.target.value); setError('') }}
-                placeholder="First and last name"
-                className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
-              />
-            </div>
-          </div>
-
           {/* ID */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider" htmlFor="personnel-id">
