@@ -3,16 +3,15 @@ import { useState } from 'react'
 export default function LoginPage({ onLogin }) {
   const [id, setId] = useState('')
   const [pw, setPw] = useState('')
-  const [pharmacistName, setPharmacistName] = useState('')
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  const isFormComplete = pharmacistName.trim() !== '' && id.trim() !== '' && pw.trim() !== ''
+  const isFormComplete = id.trim() !== '' && pw.trim() !== ''
 
   const handleLogin = () => {
     if (!isFormComplete) return
-    localStorage.setItem('pharmatrack_pharmacist', pharmacistName.trim())
+    localStorage.setItem('pharmatrack_pharmacist', id.trim()) // ← ใช้ id แทนชั่วคราว จนกว่าจะได้ชื่อจาก iMed
     onLogin()
   }
 
@@ -38,6 +37,7 @@ export default function LoginPage({ onLogin }) {
 
         {/* Form */}
         <div className="px-8 pb-8 flex flex-col gap-5">
+
 
           {/* ID */}
           <div className="flex flex-col gap-1.5">
