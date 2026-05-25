@@ -62,7 +62,9 @@ export default function Drawer({ open, patient, onClose, onSave }) {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Patient Status</h2>
             <p className="text-slate-500 text-sm mt-0.5">
-              {patient ? `${patient.patientName} · ${patient.vn}` : 'Workflow & Details'}
+              {patient
+                ? `${patient.patientName} · VN: ${patient.vn}${patient.hn ? ` · HN: ${patient.hn}` : ''}`
+                : 'Workflow & Details'}
             </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-700">
@@ -100,7 +102,9 @@ export default function Drawer({ open, patient, onClose, onSave }) {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900 truncate">{patient?.patientName || '—'}</h3>
-              <p className="text-slate-500 text-sm">{patient?.vn || '—'}</p>
+              <p className="text-slate-500 text-sm">
+                VN: {patient?.vn || '—'}{patient?.hn ? ` · HN: ${patient.hn}` : ''}
+              </p>
             </div>
             <div className="flex flex-col items-center px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl min-w-[60px]">
               <span className="text-2xl font-black text-blue-700 leading-none">{patient ? rem : '—'}</span>

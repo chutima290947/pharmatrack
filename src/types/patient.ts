@@ -2,6 +2,7 @@ export type PatientStatus = 'followup' | 'production' | 'ready' | 'dispensed'
 
 export interface Patient {
   id: number
+  hn: string | null 
   vn: string
   patientName: string
   phone: string
