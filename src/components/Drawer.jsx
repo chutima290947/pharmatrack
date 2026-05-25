@@ -108,7 +108,7 @@ export default function Drawer({ open, patient, onClose, onSave }) {
             </div>
             <div className="flex flex-col items-center px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl min-w-[60px]">
               <span className="text-2xl font-black text-blue-700 leading-none">{patient ? rem : '—'}</span>
-              <span className="text-[9px] font-bold text-blue-400 uppercase tracking-wider mt-0.5 text-center">Bottles<br/>Left</span>
+              <span className="text-[9px] font-bold text-blue-400 uppercase tracking-wider mt-0.5 text-center">Bot.lift</span>
             </div>
           </section>
 
@@ -127,7 +127,7 @@ export default function Drawer({ open, patient, onClose, onSave }) {
               <div className="flex justify-between"><span className="text-slate-500">Medication</span><span className="font-bold text-blue-700">{patient?.medication || '—'}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Total Prescribed</span><span className="font-semibold">{patient ? `${patient.totalBottles ?? '—'} Bottles` : '—'}</span></div>
               <div className="flex justify-between pt-2 border-t border-dashed border-slate-200">
-                <span className="text-slate-500">Remaining Bottles</span>
+                <span className="text-slate-500">Remaining Bot</span>
                 <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold rounded-full">{patient ? `${rem} Bottle${rem !== 1 ? 's' : ''}` : '—'}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-dashed border-slate-200">

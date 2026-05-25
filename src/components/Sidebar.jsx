@@ -46,7 +46,17 @@ export default function Sidebar({ navigate, activePage }) {
         >
           <span className="material-symbols-outlined">dashboard</span>Dashboard
         </button>
+
+        <button
+          onClick={() => navigate('adr')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-md font-medium text-sm w-full text-left transition-colors ${
+            activePage === 'adr' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <span className="material-symbols-outlined">health_and_safety</span>ADR
+        </button>
       </div>
+
 
       {/* Status Legend */}
       <div className="mt-auto p-4 bg-white border border-slate-200 rounded-xl">

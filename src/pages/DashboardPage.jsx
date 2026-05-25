@@ -21,6 +21,7 @@ export default function DashboardPage({ navigate }) {
   const [selected,  setSelected]  = useState(null)
   const [vnLogs,    setVnLogs]    = useState([])
   const [toast,     setToast]     = useState(null)
+  const [logFilter, setLogFilter] = useState('all')
 
   const load = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true)
@@ -65,6 +66,12 @@ export default function DashboardPage({ navigate }) {
     followupToday:  patients.filter(p => p.activeDate === todayISO && p.status === 'followup').length,
     dispensedToday: logs.filter(l => l.dispensed_date === todayISO).length,
   }
+
+  const filteredLogs = logs.filter(l => {
+    if (logFilter === 'today') return l.dispensed_date === todayISO
+    if (logFilter === 'month') return l.dispensed_date?.slice(0, 7) === todayISO.slice(0, 7)
+    return true
+  })
 
   const allRecords = [
     ...patients
@@ -348,14 +355,15 @@ export default function DashboardPage({ navigate }) {
 
               {/* Recent logs */}
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900">การจ่ายยาล่าสุด</h3>
-                  <span className="text-xs text-slate-400">20 รายการล่าสุด</span>
-                </div>
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-bold text-slate-900">การจ่ายยาล่าสุด</h3>
+                <span className="text-xs text-slate-400">20 รายการล่าสุด</span>
+              </div>        
+
                 <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                  {logs.length === 0 ? (
+                  {filteredLogs.length === 0 ? (
                     <p className="text-sm text-slate-400 text-center py-6">ยังไม่มีประวัติ</p>
-                  ) : logs.map(l => (
+                  ) : filteredLogs.map(l => (
                     <div key={l.id} className="px-5 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-slate-800 truncate">{l.patient_name}</p>
