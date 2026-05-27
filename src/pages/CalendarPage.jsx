@@ -153,9 +153,9 @@ export default function CalendarPage({ navigate, jumpTo }) {
           {/* ── Header ── */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800 leading-tight">Dispensing Calendar</h2>
-              </div>
+            <div className="px-4 py-1.5 bg-gradient-to-r from-red-50 to-blue-50 border border-slate-200 rounded-xl shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 leading-tight">Dispensing Calendar</h2>
+            </div>
 
               {/* ── Month / Year Picker ── */}
               <div className="flex items-center gap-2 ml-2">

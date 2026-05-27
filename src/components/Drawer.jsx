@@ -61,11 +61,6 @@ export default function Drawer({ open, patient, onClose, onSave }) {
         <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-start flex-shrink-0">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Patient Status</h2>
-            <p className="text-slate-500 text-sm mt-0.5">
-              {patient
-                ? `${patient.patientName} · VN: ${patient.vn}${patient.hn ? ` · HN: ${patient.hn}` : ''}`
-                : 'Workflow & Details'}
-            </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-700">
             <span className="material-symbols-outlined">close</span>

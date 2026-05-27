@@ -118,11 +118,10 @@ export default function AddPatientPage({ navigate }) {
       <Sidebar navigate={navigate} activePage="add-patient" />
       <TopBar navigate={navigate} onOpenPatient={() => {}} patients={[]} />
 
-      <main className="ml-64 mt-16 p-6 min-h-screen">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8 flex justify-between items-end">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">PATIENT REGISTRATION</p>
+      <main className="ml-64 mt-16 min-h-screen bg-slate-200/60">
+        <div className="max-w-[1600px] mx-auto px-6 py-5">
+          <div className="mb-5 flex justify-between items-end">
+            <div className="px-4 py-1.5 bg-gradient-to-r from-red-50 to-blue-50 border border-slate-200 rounded-xl shadow-sm">
               <h2 className="text-2xl font-bold text-slate-900">Initiate Medication Tracking (VN)</h2>
             </div>
             <p className="text-sm text-slate-500">Date: <span className="font-medium text-slate-800">{todayLabel}</span></p>
@@ -137,8 +136,8 @@ export default function AddPatientPage({ navigate }) {
                   <span className="material-symbols-outlined">person</span>
                   <h3 className="text-lg font-semibold">Patient Information</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
+                <div className="grid grid-cols-3 gap-5">
+                  <div className="space-y-1.5 ">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Visit Number (VN) <span className="text-red-400">*</span></label>
                     <input type="text" value={vn} onChange={e => setVn(e.target.value)} placeholder="e.g. VN-2023-001"
                       className="w-full border border-slate-200 rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-blue-300 outline-none" />

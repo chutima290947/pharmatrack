@@ -157,14 +157,13 @@ export default function DashboardPage({ navigate }) {
       <Sidebar navigate={navigate} activePage="dashboard" />
       <TopBar navigate={navigate} patients={patients} onOpenPatient={() => {}} />
 
-      <main className="ml-64 mt-16 p-6 min-h-screen">
-        <div className="max-w-[1600px] mx-auto">
+      <main className="ml-64 mt-16 min-h-screen bg-slate-200/60">
+        <div className="max-w-[1600px] mx-auto px-6 py-5">
 
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
+          <div className="flex items-center justify-between mb-5">
+            <div className="px-4 py-1.5 bg-gradient-to-r from-red-50 to-blue-50 border border-slate-200 rounded-xl shadow-sm">
               <h2 className="text-2xl font-bold text-slate-900">Dashboard</h2>
-              <p className="text-sm text-slate-500 mt-0.5">ภาพรวมการบันทึกติดตามการรับยา</p>
             </div>
             <button onClick={() => load(true)}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
@@ -173,7 +172,7 @@ export default function DashboardPage({ navigate }) {
           </div>
 
           {/* Stat cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-5">
             {statCards.map(c => (
               <div key={c.label} className={`bg-white p-5 rounded-xl border border-slate-200 border-l-4 ${c.border} shadow-sm`}>
                 <div className="flex items-center gap-3 mb-2">

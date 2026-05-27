@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fetchPharmacistName } from '../utils/auth'
 
 export default function LoginPage({ onLogin }) {
   const [id, setId] = useState('')
@@ -6,21 +7,31 @@ export default function LoginPage({ onLogin }) {
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const isFormComplete = id.trim() !== '' && pw.trim() !== ''
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!isFormComplete) return
-    localStorage.setItem('pharmatrack_pharmacist', id.trim()) // ← ใช้ id แทนชั่วคราว จนกว่าจะได้ชื่อจาก iMed
-    onLogin()
+    setLoading(true)
+    try {
+      const displayName = await fetchPharmacistName(id.trim(), pw.trim())
+      localStorage.setItem('pharmatrack_pharmacist', displayName)
+      sessionStorage.removeItem('pharmatrack_login_time') // ← เพิ่มบรรทัดนี้
+      onLogin()
+    } catch (err) {
+      setError('ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div
       className="min-h-screen flex items-center justify-center p-6"
       style={{
-        backgroundImage: `linear-gradient(rgba(249,249,255,0.92),rgba(249,249,255,0.92)),
-          url(https://lh3.googleusercontent.com/aida-public/AB6AXuCavmPvj0oaw46YQcJUt1PTg2z_zfFiGJ0Tk216V5Fu6RCdtMktOlFX5vjUGE-DcnfmYj_AH3ARsZDCLSyLwtYZGH1iYIKYPo9ijdtZipZr4pCjBz6gomRS8C-zXex413-6RZHijLjvALIxZRKBb671s5gp5x0W8OV2BHHsQtjSVFF03DU4wVzS2vwyK7NvyAnus3HY-kfC98jsZJGe4Kn4BKk79dABoD89RhSi2CrOBT2vg9cvKlBabmQ3a3ozYYepPYi-BIut1xMQ)`,
+        backgroundImage: `linear-gradient(rgba(207, 210, 219, 0.55),rgba(113, 127, 174, 0.55)),
+          url(/pharmacy-bg.webp)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
@@ -38,7 +49,6 @@ export default function LoginPage({ onLogin }) {
         {/* Form */}
         <div className="px-8 pb-8 flex flex-col gap-5">
 
-
           {/* ID */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider" htmlFor="personnel-id">
@@ -51,6 +61,7 @@ export default function LoginPage({ onLogin }) {
                 type="text"
                 value={id}
                 onChange={e => setId(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
                 placeholder="Enter ID"
                 className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
               />
@@ -72,6 +83,7 @@ export default function LoginPage({ onLogin }) {
                 type={showPassword ? 'text' : 'password'}
                 value={pw}
                 onChange={e => setPw(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
                 placeholder="••••••••"
                 className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition-all text-sm text-slate-800"
               />
@@ -111,19 +123,28 @@ export default function LoginPage({ onLogin }) {
           {/* Sign In */}
           <button
             onClick={handleLogin}
-            disabled={!isFormComplete}
+            disabled={!isFormComplete || loading}
             className={`w-full font-semibold py-3 px-5 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm
-              ${isFormComplete
+              ${isFormComplete && !loading
                 ? 'bg-blue-700 hover:bg-blue-800 text-white active:scale-[0.98] cursor-pointer'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
           >
-            Sign In
-            <span className="material-symbols-outlined">arrow_forward</span>
+            {loading ? (
+              <>
+                <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                กำลังเข้าสู่ระบบ...
+              </>
+            ) : (
+              <>
+                Sign In
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </>
+            )}
           </button>
 
           {/* Helper text when disabled */}
-          {!isFormComplete && (
+          {!isFormComplete && !loading && (
             <p className="text-center text-[11px] text-slate-400">
               Please fill in all required fields before logging in.
             </p>
